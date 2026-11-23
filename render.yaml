@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: aicore-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: AICORE_TOKEN
+        generateValue: true
+      - key: AICORE_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGIN
+        value: https://tgvhjtf-crypto.github.io
+      - key: DAILY_CALL_LIMIT
+        value: "50"
+      - key: MAX_DISCUSS_ROUNDS
+        value: "0"
+      - key: MAX_SUBTASKS
+        value: "3"
+      - key: MAX_TOKENS
+        value: "2000"
