@@ -24,8 +24,8 @@ async function chat(a,system,user,max){
       let r;
       if(a.kind=='anthropic')r=await fetch(base+'/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':a.api_key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:a.model,max_tokens:max,system,messages:[{role:'user',content:user}]})});
       else r=await fetch(base+'/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+a.api_key},body:JSON.stringify({model:a.model,max_tokens:max,messages:[{role:'system',content:system},{role:'user',content:user}]})});
-      if(!r.ok)throw new Error(r.status+' '+(await r.text()).slice(0,150));
-      const j=await r.json();
+      if(!r.ok){const tx=await r.text();throw new Error('HTTP '+r.status+'：'+(tx.trim().startsWith('<')?'服务器返回了网页而不是接口数据，可能是 API 地址不对，或被 Cloudflare 拦截':tx.slice(0,120)))}
+      const raw=await r.text();let j;try{j=JSON.parse(raw)}catch(e){throw new Error('返回内容不是接口数据：'+raw.slice(0,60).replace(/</g,'‹'))}
       return a.kind=='anthropic'?j.content.map(b=>b.text||'').join(''):j.choices[0].message.content;
     }catch(e){last=e}
   }

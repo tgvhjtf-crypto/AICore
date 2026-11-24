@@ -44,7 +44,11 @@ label{font-size:13px;color:var(--mu);display:block}
 .chip{font-size:13px;border:1px solid var(--bd);border-radius:99px;padding:2px 12px;color:var(--mu)}
 .muted{color:var(--mu)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bd);margin-right:6px}.dot.on{background:var(--ok)}
-@media(max-width:820px){nav{width:62px}nav button{font-size:0}nav button::first-letter{font-size:16px}.logo{font-size:0}.logo::first-letter{font-size:22px}main{padding:20px 16px}.grid{grid-template-columns:1fr}}
+.row{flex-wrap:wrap}
+[data-r]{flex:1 1 100%;order:-1;word-break:break-all;white-space:pre-wrap}[data-r]:empty{display:none}
+main{min-height:0}
+@media(max-width:820px){nav{width:170px}main{padding:20px 18px}.grid{grid-template-columns:1fr}}
+@media(max-width:640px){body{flex-direction:column-reverse}nav{width:100%;flex-direction:row;padding:6px;border-right:0;border-top:1px solid var(--bd);gap:2px;overflow-x:auto}.logo{display:none}nav button{flex:1;text-align:center;padding:8px 4px;font-size:13px;white-space:nowrap}main{padding:16px 14px 24px}h1{font-size:26px;margin:3vh 0 14px}.item{padding:10px 12px}}
 </style>
 </head>
 <body>
@@ -76,8 +80,8 @@ addEventListener('hashchange',route);
 function settings(){$('#v').innerHTML='<h2>设置</h2><div class="card">所有数据（任务、记忆、API Key）只保存在这台设备的本应用里，不会上传到任何服务器。卸载应用或清除应用数据会删除全部内容。</div><p class="muted">API Key 请在“AI 专家团队”页填写。</p>';}
 
 async function home(){
-  const ts=await api('/tasks');
-  $('#v').innerHTML=`<h1>想让专家团队做什么？</h1><div class="box"><textarea id="q" placeholder="描述你的任务，主控 AI 会拆分并分配给专家"></textarea>
+  const ts=await api('/tasks'),ready=(await api('/agents')).some(a=>a.enabled&&a.has_key);
+  $('#v').innerHTML=`<h1>想让专家团队做什么？</h1>${ready?'':`<div class="card">第一次使用：先到“AI 专家团队”给主控AI和至少一位专家填写 API Key 并勾选启用。<div class="row"><button class="btn p" onclick="location.hash='#/agents'">去设置</button></div></div>`}<div class="box"><textarea id="q" placeholder="描述你的任务，主控 AI 会拆分并分配给专家"></textarea>
   <div class="row"><button class="btn p" onclick="submit()">提交任务</button></div></div>
   <h2 style="margin-top:36px;font-size:18px">最近任务</h2>${list(ts.slice(0,6))||'<p class="muted">还没有任务。写下第一个任务吧。</p>'}`;
 }
