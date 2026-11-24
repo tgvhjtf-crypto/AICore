@@ -50,6 +50,7 @@ label{font-size:13px;color:var(--mu);display:block}
 <body>
 <nav id="nav"></nav>
 <main><div class="wrap" id="v"></div></main>
+<script src="local.js"></script>
 <script>
 const $=s=>document.querySelector(s);
 const h=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -58,11 +59,7 @@ const ST={pending:'等待中',planning:'主控规划中',awaiting:'待你确认'
 const KIND={plan:'任务拆分',work:'专家发言',discuss:'评议',final:'最终答案',error:'出错'};
 let timer;
 
-async function api(p,o={}){
-  const r=await fetch(S.url+'/api'+p,{method:o.method||'GET',headers:{'Content-Type':'application/json','X-Token':S.tok},body:o.body?JSON.stringify(o.body):undefined});
-  if(!r.ok)throw new Error(r.status==401?'令牌错误，请在“设置”中检查':await r.text());
-  return r.json();
-}
+const api=(p,o)=>localApi(p,o);
 const NAV=[['home','主控台'],['agents','AI 专家团队'],['tasks','任务管理'],['memory','共享记忆'],['settings','设置']];
 function nav(cur){$('#nav').innerHTML='<div class="logo">AICore</div>'+NAV.map(([k,t])=>`<button class="${k==cur?'on':''}" onclick="location.hash='#/${k}'">${t}</button>`).join('');}
 function err(e){$('#v').innerHTML=`<div class="card" style="color:var(--er)">${h(e.message)}</div><div class="row" style="justify-content:flex-start"><button class="btn" onclick="location.hash='#/settings'">打开设置</button></div>`}
@@ -71,18 +68,12 @@ async function route(){
   clearInterval(timer);
   const [,page,arg]=location.hash.split('/');
   const p=page||'home';nav(p=='task'?'tasks':p);
-  if(!S.url||!S.tok)return p=='settings'?settings():(location.hash='#/settings');
+  
   try{await ({home,agents,tasks,memory,settings,task})[p](arg)}catch(e){err(e)}
 }
 addEventListener('hashchange',route);
 
-function settings(){
-  $('#v').innerHTML=`<h2>设置</h2><div class="card"><label>后端地址</label><input id="u" placeholder="https://aicore-backend.onrender.com" value="${h(S.url)}">
-  <label style="margin-top:10px">访问令牌（AICORE_TOKEN）</label><input id="t" type="password" value="${h(S.tok)}">
-  <div class="row"><button class="btn p" onclick="saveSet()">保存</button></div></div>
-  <p class="muted">AI 的 API Key 只在“AI 专家团队”页提交给后端，不会保存在浏览器。</p>`;
-}
-function saveSet(){S.url=$('#u').value.trim().replace(/\/$/,'');S.tok=$('#t').value.trim();localStorage.setItem('url',S.url);localStorage.setItem('tok',S.tok);location.hash='#/home';route();}
+function settings(){$('#v').innerHTML='<h2>设置</h2><div class="card">所有数据（任务、记忆、API Key）只保存在这台设备的本应用里，不会上传到任何服务器。卸载应用或清除应用数据会删除全部内容。</div><p class="muted">API Key 请在“AI 专家团队”页填写。</p>';}
 
 async function home(){
   const ts=await api('/tasks');
